@@ -1,0 +1,33 @@
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 13px;
+  border-radius: var(--radius-filter);
+  background: var(--color-white);
+  font: var(--text-status);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.url {
+  font: var(--text-small);
+  color: var(--color-ink-soft);
+}
+
+.checking {
+  color: var(--color-ink-soft);
+}
+
+.ok {
+  color: var(--color-moss);
+}
+
+.down {
+  color: var(--color-amber);
+}
