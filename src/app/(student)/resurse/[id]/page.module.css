@@ -8,3 +8,20 @@
   color: var(--color-ink);
   text-decoration: none;
 }
+
+/* "RRM/Stare" next to the title. */
+.status {
+  font: var(--text-status);
+}
+
+.free {
+  color: var(--color-moss);
+}
+
+.reserved {
+  color: var(--color-amber);
+}
+
+.maintenance {
+  color: var(--color-danger);
+}
