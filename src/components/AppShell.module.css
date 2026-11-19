@@ -1,0 +1,18 @@
+.shell {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 100vh;
+  padding: 14px;
+  /* Decorative lines ("Lumină") over the background gradient. */
+  background: url('/lumina.svg') center / cover no-repeat fixed;
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+  padding: 30px 44px 40px;
+}
