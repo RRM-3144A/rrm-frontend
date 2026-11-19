@@ -1,0 +1,10 @@
+/* "Înapoi" link from the Figma calendar screen. */
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  font: var(--text-body);
+  color: var(--color-ink);
+  text-decoration: none;
+}
