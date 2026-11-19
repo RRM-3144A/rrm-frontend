@@ -1,0 +1,66 @@
+/* Design tokens from the Figma file "WIREFRAME" (pages UTILIZATOR / ADMIN). */
+:root {
+  --color-petrol: #0e3a44;
+  --color-ink: #12262c;
+  --color-ink-soft: #3f555c;
+  --color-moss: #23604a;
+  --color-amber: #8a5a0c;
+  --color-white: #ffffff;
+  --color-login-bg: #eef2f2;
+  --color-border: #dde4e5;
+
+  --radius-button: 11px;
+  --radius-filter: 12px;
+  --radius-panel: 22px;
+  --radius-sidebar: 24px;
+
+  /* "RRM/Sticlă": frosted glass panels. */
+  --glass-background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.66) 8%,
+    rgba(255, 255, 255, 0.42) 92%
+  );
+  --glass-shadow: 0 18px 40px -22px rgba(14, 58, 68, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+
+  /* Text styles: RRM/Titlu pagină, Corp, Secundar, Stare, Mic. */
+  --text-page-title: 600 34px / normal var(--font-plex), sans-serif;
+  --text-body: 400 14.5px / normal var(--font-plex), sans-serif;
+  --text-secondary: 400 14px / normal var(--font-plex), sans-serif;
+  --text-status: 600 13px / normal var(--font-plex), sans-serif;
+  --text-small: 400 12px / normal var(--font-plex), sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  font: var(--text-body);
+  color: var(--color-ink);
+  background:
+    radial-gradient(circle at 88% 6%, rgba(23, 96, 111, 0.3), transparent 45%),
+    radial-gradient(circle at 62% 34%, rgba(150, 202, 206, 0.42), transparent 40%),
+    radial-gradient(circle at 8% 94%, rgba(14, 58, 68, 0.3), transparent 45%),
+    radial-gradient(circle at 34% 78%, rgba(203, 214, 170, 0.34), transparent 32%),
+    linear-gradient(145deg, #e4ebeb 0%, #d5dfe0 60%, #c8d5d7 100%);
+  background-attachment: fixed;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+}
