@@ -42,6 +42,11 @@
 
 .item {
   display: flex;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
   align-items: center;
   gap: 11px;
   height: 40px;

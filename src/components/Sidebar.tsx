@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import {usePathname} from 'next/navigation';
+import {usePathname, useRouter} from 'next/navigation';
 
 import {Icon} from '@/components/icons/Icon';
+import {signOut} from '@/lib/auth';
 import {accountMenu, mainMenu, signOutItem} from '@/lib/navigation';
 import type {Area, NavItem} from '@/lib/navigation';
 
@@ -25,6 +26,7 @@ function NavLink({item, active}: {item: NavItem; active: boolean}) {
 /** Side menu from Figma ("Sidebar"); the items depend on the area. */
 export function Sidebar({area}: {area: Area}) {
   const pathname = usePathname();
+  const router = useRouter();
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
@@ -43,7 +45,17 @@ export function Sidebar({area}: {area: Area}) {
         {accountMenu[area].map((item) => (
           <NavLink key={item.href} item={item} active={isActive(item.href)} />
         ))}
-        <NavLink item={signOutItem} active={false} />
+        <button
+          type="button"
+          className={styles.item}
+          onClick={() => {
+            signOut();
+            router.replace(signOutItem.href);
+          }}
+        >
+          <Icon name={signOutItem.icon} />
+          {signOutItem.label}
+        </button>
       </nav>
     </aside>
   );

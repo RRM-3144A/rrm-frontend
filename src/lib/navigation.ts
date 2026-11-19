@@ -32,5 +32,5 @@ export const accountMenu: Record<Area, NavItem[]> = {
   admin: [{label: 'Profil administrator', href: '/admin/profil', icon: 'user'}],
 };
 
-/** Sign-out goes back to the start page until Google sign-in exists (E1-14). */
-export const signOutItem: NavItem = {label: 'Deconectare', href: '/', icon: 'logout'};
+/** Sign-out clears the session and returns to the sign-in page. */
+export const signOutItem: NavItem = {label: 'Deconectare', href: '/conectare', icon: 'logout'};
