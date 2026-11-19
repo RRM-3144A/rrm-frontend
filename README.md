@@ -12,8 +12,11 @@ cp .env.example .env.local   # Windows: copy .env.example .env.local
 npm run dev
 ```
 
-App: http://localhost:3000. The start page calls `GET /health` on the backend
-(`NEXT_PUBLIC_API_URL`, default http://localhost:8000) and shows whether it answers.
+App: http://localhost:3000 (opens the sign-in page, `/conectare`). Until the API
+client is connected (E1-41), "Continuă cu Google" opens a demo account chooser: a
+student, an administrator and a personal Gmail account (shows the domain error).
+The sign-in page also calls `GET /health` on the backend
+(`NEXT_PUBLIC_API_URL`, default http://localhost:8000) and shows at the bottom whether it answers.
 Start the backend first (see `rrm-backend`); its CORS settings already allow
 http://localhost:3000.
 

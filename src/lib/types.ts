@@ -51,3 +51,14 @@ export interface CatalogEntry {
   resource: Resource;
   today: TodayAvailability;
 }
+
+export type Role = 'STUDENT' | 'ADMIN';
+
+/** The signed-in user (backend UserOut). */
+export interface SessionUser {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: Role;
+}
