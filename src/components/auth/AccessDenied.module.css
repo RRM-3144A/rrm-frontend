@@ -1,0 +1,44 @@
+/* "Stare goală" */
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 64px 40px;
+  border: 1px solid var(--color-white);
+  border-radius: var(--radius-panel);
+  background: var(--glass-background);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(11px);
+  text-align: center;
+  color: var(--color-ink);
+}
+
+.icon {
+  display: flex;
+  padding: 16px;
+  border-radius: 999px;
+  background: rgba(149, 37, 53, 0.08);
+  color: var(--color-danger);
+}
+
+.heading {
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: -0.44px;
+}
+
+.text {
+  font: var(--text-body);
+}
+
+/* "Buton/Primar" */
+.button {
+  padding: 8px 15px;
+  border-radius: var(--radius-button);
+  background: var(--color-petrol);
+  font-weight: 500;
+  font-size: 14.5px;
+  color: var(--color-white);
+  text-decoration: none;
+}
