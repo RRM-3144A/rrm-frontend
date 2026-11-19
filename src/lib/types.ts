@@ -62,3 +62,14 @@ export interface SessionUser {
   email: string;
   role: Role;
 }
+
+/** Backend SlotStatus (GET /resources/{id}/availability). */
+export type SlotStatus = 'FREE' | 'PENDING' | 'APPROVED' | 'MAINTENANCE';
+
+/** One 30-minute slot (backend AvailabilitySlot); times as ISO strings. */
+export interface AvailabilitySlot {
+  startAt: string;
+  endAt: string;
+  status: SlotStatus;
+  freePlaces: number;
+}

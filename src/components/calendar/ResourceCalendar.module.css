@@ -1,0 +1,206 @@
+/* Figma "Utilizator / 05 · Calendar resursă" → "Calendar". */
+.calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 22px;
+  border: 1px solid var(--color-white);
+  border-radius: var(--radius-panel);
+  background: var(--glass-background);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(11px);
+}
+
+/* "Săptămână" */
+.week {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 60px;
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-white);
+  border-radius: var(--radius-button);
+  background: var(--color-white);
+  color: var(--color-ink-soft);
+  cursor: pointer;
+}
+
+.range {
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: -0.08px;
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+
+.legend {
+  display: flex;
+  gap: 8px 14px;
+  margin: 0 0 0 auto;
+  padding: 0;
+  list-style: none;
+  font: var(--text-small);
+  color: var(--color-ink-soft);
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--color-petrol);
+  border-radius: 4px;
+}
+
+/* "Orar" */
+.grid {
+  display: grid;
+  grid-template-columns: 44px repeat(7, minmax(0, 1fr));
+  column-gap: 5px;
+}
+
+.corner {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.hour {
+  padding-right: 6px;
+  font: var(--text-small);
+  text-align: right;
+  color: var(--color-ink-soft);
+  transform: translateY(-6px);
+}
+
+.dayHeader {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 6px;
+}
+
+.dayName {
+  font: var(--text-small);
+  color: var(--color-ink-soft);
+}
+
+.dayNumber {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--color-ink);
+}
+
+.slot {
+  padding: 0 7px;
+  border: 0;
+  border-bottom: 1px solid rgba(14, 58, 68, 0.18);
+  border-radius: 0;
+  font: var(--text-small);
+  text-align: left;
+  color: var(--color-white);
+}
+
+.slot:disabled {
+  cursor: default;
+}
+
+.selectable {
+  cursor: pointer;
+}
+
+.selectable:hover {
+  background: #e3ecee;
+}
+
+/* Cell and legend colours from the Figma legend. */
+.closed {
+  background: transparent;
+}
+
+.free {
+  background: var(--color-white);
+}
+
+.partial {
+  background: #17606f;
+}
+
+.busy {
+  background: var(--color-petrol);
+}
+
+.maintenance {
+  background: var(--color-danger);
+}
+
+.selected,
+.selected:hover {
+  background: #17606f;
+  box-shadow: inset 2px 0 0 var(--color-petrol), inset -2px 0 0 var(--color-petrol);
+}
+
+.selectedFirst {
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.selectedLast {
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+/* "Selecție" */
+.selection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 10px 18px;
+  border: 1px solid var(--color-white);
+  border-radius: 18px;
+  background: var(--glass-background);
+  box-shadow: var(--glass-shadow);
+}
+
+.selectionText {
+  flex: 1;
+  font-weight: 500;
+  font-size: 14.5px;
+  color: var(--color-ink);
+}
+
+/* "Buton/Primar" and "Buton/Secundar" */
+.primary,
+.secondary {
+  padding: 8px 15px;
+  border: 1px solid var(--color-petrol);
+  border-radius: var(--radius-button);
+  font-weight: 500;
+  font-size: 14.5px;
+  cursor: pointer;
+}
+
+.primary {
+  background: var(--color-petrol);
+  color: var(--color-white);
+}
+
+.secondary {
+  background: var(--color-white);
+  color: var(--color-ink);
+}
+
+.primary:disabled,
+.secondary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

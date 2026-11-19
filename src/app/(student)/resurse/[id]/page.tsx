@@ -2,7 +2,7 @@ import type {Metadata} from 'next';
 import Link from 'next/link';
 import {notFound} from 'next/navigation';
 
-import {EmptyPanel} from '@/components/EmptyPanel';
+import {ResourceCalendar} from '@/components/calendar/ResourceCalendar';
 import {Icon} from '@/components/icons/Icon';
 import {PageHeader} from '@/components/PageHeader';
 import {getCatalogEntry} from '@/lib/catalog';
@@ -16,24 +16,34 @@ interface ResourcePageProps {
 
 export const metadata: Metadata = {title: 'Calendar resursă · RRM'};
 
-/** Resource page opened from the catalog; the weekly calendar comes in E1-21. */
+/** Figma "Utilizator / 05 · Calendar resursă". */
 export default async function ResourcePage({params}: ResourcePageProps) {
   const {id} = await params;
   const entry = getCatalogEntry(Number(id));
   if (!entry) {
     notFound();
   }
-  const {resource} = entry;
-  const backHref = resource.seats !== null ? '/sali' : '/echipamente';
+  const {resource, today} = entry;
+  const isRoom = resource.seats !== null;
+  const status =
+    resource.status === 'MAINTENANCE'
+      ? {label: 'În mentenanță', className: styles.maintenance}
+      : today.reservedNow
+        ? {label: 'Rezervată', className: styles.reserved}
+        : {label: 'Liberă', className: styles.free};
 
   return (
     <>
-      <Link href={backHref} className={styles.back}>
+      <Link href={isRoom ? '/sali' : '/echipamente'} className={styles.back}>
         <Icon name="left" />
-        {resource.seats !== null ? 'Înapoi la săli' : 'Înapoi la echipamente'}
+        {isRoom ? 'Înapoi la săli' : 'Înapoi la echipamente'}
       </Link>
-      <PageHeader title={resource.name} subtitle={resourceSubtitle(resource)} />
-      <EmptyPanel>Calendarul săptămânal al resursei urmează.</EmptyPanel>
+      <PageHeader
+        title={resource.name}
+        subtitle={resourceSubtitle(resource)}
+        aside={<span className={`${styles.status} ${status.className}`}>{status.label}</span>}
+      />
+      <ResourceCalendar resource={resource} />
     </>
   );
 }
