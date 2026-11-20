@@ -17,6 +17,8 @@ interface DialogProps {
   tone?: 'default' | 'success' | 'danger';
   /** Buttons at the bottom right. */
   footer?: ReactNode;
+  /** Wider panel for long forms (e.g. "Adaugă resursă"). */
+  wide?: boolean;
   onClose: () => void;
   children?: ReactNode;
 }
@@ -31,6 +33,7 @@ export function Dialog({
   icon,
   tone = 'default',
   footer,
+  wide = false,
   onClose,
   children,
 }: DialogProps) {
@@ -46,7 +49,7 @@ export function Dialog({
   return (
     <dialog
       ref={ref}
-      className={styles.dialog}
+      className={wide ? `${styles.dialog} ${styles.wide}` : styles.dialog}
       aria-labelledby={titleId}
       onCancel={(event) => {
         event.preventDefault();

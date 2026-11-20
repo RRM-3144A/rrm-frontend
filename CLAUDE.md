@@ -106,7 +106,9 @@ have the **same shape as the backend responses** (`src/lib/types.ts`), so integr
   `useAvailability()`, ...); changes go through async functions (`createReservation()`,
   `cancelReservation()`, ...) that apply the **backend's rules and HTTP statuses** and
   throw `ApiError` (`src/lib/errors.ts`, message in Romanian, shown with `errorMessage()`).
-- Server pages (catalog, resource page) still use the static `src/lib/catalog.ts`.
+- The catalog and the resource page read the mock database too (`useCatalog()`,
+  `useCatalogEntry()` in `src/lib/catalog.ts`), so resources added or deactivated in
+  "Resurse" show up for students right away. `src/lib/mock/catalog.ts` is only the seed.
 - Shared UI: `components/Dialog` (modal popups), `components/controls.module.css`
   (buttons, fields, notices, details), `components/list.module.css` (search bar, filter
   chips, glass list with dated rows, status colours, tags).
@@ -160,19 +162,20 @@ and shows "Acces restricționat" to non-admins on `/admin/*`.
 Done (merged): E1-37 (Next.js setup), E1-40 (layout + navigation), E1-17 (catalog),
 E1-14 (sign-in page), E1-42 (role protection), E1-21 (resource calendar).
 
-Remaining for the MVP frontend, in a sensible order:
-1. **E1-25** – dialog "Adaugă rezervare" (wire the calendar's "Continuă", `onContinue`
-   prop of `ResourceCalendar`) and page "Rezervările mele" (status, cancel).
-2. **E1-28** – admin "Cereri primite" (list, "Prima rezervare" badge, approve / reject with
-   reason / needs training, request details popup).
-3. **E1-45 (frontend part)** – "Instruire finalizată" action/popup in "Cereri primite"
-   (backend part by Antonie, rrm-backend PR #21).
-4. **E1-31** – admin "Calendar și mentenanță": mark maintenance (interval + reason), show it in the calendar.
-5. **E1-43** – admin "Program de funcționare" form.
-6. **E1-18** – admin "Resurse" and "Categorii" pages (add / edit / deactivate).
+MVP frontend in review (PRs by Gabriel, merge in this order):
+1. **E1-25** (#8) – "Adaugă rezervare" dialog, "Rezervările mele", mock database + shared UI.
+2. **E1-28 + E1-45 UI** (#9, on #8) – admin "Cereri primite" (approve / reject / training / training done).
+3. **E1-31** (#10, on #8) – admin "Calendar și mentenanță".
+4. **E1-43** (#11, on #10) – admin "Program de funcționare".
+5. **E1-18** (on #8) – admin "Resurse" and "Categorii"; catalog reads the mock database.
+
+Gaps found in the backend for the integration (E1-41): no endpoint for a student's own
+reservations ("Rezervările mele", e.g. `GET /reservations/me`); `GET /reservations/pending`
+returns only `PENDING` (the page also shows `AWAITING_TRAINING`).
 
 Later / not MVP: **E1-41** API client (integration stage), **E1-46** waitlist UI (nice to have),
-**E1-50** "Utilizare pe echipe", **E1-47** end-to-end tests, **E1-49** demo preparation.
+**E1-50** "Utilizare pe echipe", **E1-47** end-to-end tests, **E1-49** demo preparation,
+"Profil" pages, "Reprogramează" for reservations under review.
 
 **E1-37 Docker part** (postponed to the end of the project): add a `Dockerfile`
 (Next.js `output: 'standalone'`, copy `.next/standalone`, `.next/static` and `public/`),

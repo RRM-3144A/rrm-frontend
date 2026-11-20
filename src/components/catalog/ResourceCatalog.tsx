@@ -5,6 +5,8 @@ import {useMemo, useState} from 'react';
 
 import {Icon} from '@/components/icons/Icon';
 import {PageHeader} from '@/components/PageHeader';
+import {useCatalog} from '@/lib/catalog';
+import type {CatalogKind} from '@/lib/catalog';
 import {adminNames, formatLocation, formatSchedule, resourceSubtitle} from '@/lib/format';
 import type {CatalogEntry} from '@/lib/types';
 
@@ -38,7 +40,7 @@ interface ResourceCatalogProps {
   searchPlaceholder: string;
   /** Noun for the counter on the right, e.g. {one: 'sală', many: 'săli'}. */
   countNoun: {one: string; many: string};
-  entries: CatalogEntry[];
+  kind: CatalogKind;
 }
 
 /** Searchable, filterable list of resources ("Săli" / "Echipamente" in Figma). */
@@ -47,8 +49,10 @@ export function ResourceCatalog({
   subtitle,
   searchPlaceholder,
   countNoun,
-  entries,
+  kind,
 }: ResourceCatalogProps) {
+  const loaded = useCatalog(kind);
+  const entries = useMemo(() => loaded ?? [], [loaded]);
   const [query, setQuery] = useState('');
   const [categoryId, setCategoryId] = useState<number | 'all'>('all');
   const [filter, setFilter] = useState<Filter>('all');
@@ -123,7 +127,7 @@ export function ResourceCatalog({
         </div>
       </div>
 
-      {visible.length === 0 ? (
+      {loaded === undefined ? null : visible.length === 0 ? (
         <p className={styles.empty}>Nicio resursă nu corespunde căutării.</p>
       ) : (
         <ul className={styles.list}>

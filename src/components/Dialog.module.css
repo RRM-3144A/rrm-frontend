@@ -10,6 +10,10 @@
   color: var(--color-ink);
 }
 
+.wide {
+  width: min(720px, calc(100vw - 32px));
+}
+
 .dialog::backdrop {
   background: rgba(18, 38, 44, 0.32);
   backdrop-filter: blur(2px);
