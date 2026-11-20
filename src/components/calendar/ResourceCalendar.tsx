@@ -82,10 +82,16 @@ interface ResourceCalendarProps {
   resource: Resource;
   /** Called with the chosen interval (opens the reservation dialog). */
   onContinue?: (start: Date, end: Date) => void;
+  /** Text of the button that calls `onContinue`. */
+  continueLabel?: string;
 }
 
 /** Weekly calendar with 30-minute slots (Figma "Utilizator / 05 · Calendar resursă"). */
-export function ResourceCalendar({resource: initialResource, onContinue}: ResourceCalendarProps) {
+export function ResourceCalendar({
+  resource: initialResource,
+  onContinue,
+  continueLabel = 'Continuă',
+}: ResourceCalendarProps) {
   // Opening hours, status and bookings can change while the page is open.
   const resource = useResource(initialResource);
   const [now] = useState(() => new Date());
@@ -255,7 +261,7 @@ export function ResourceCalendar({resource: initialResource, onContinue}: Resour
           disabled={!selectedStart || !selectedEnd || !onContinue}
           onClick={() => selectedStart && selectedEnd && onContinue?.(selectedStart, selectedEnd)}
         >
-          Continuă
+          {continueLabel}
         </button>
       </div>
     </section>
