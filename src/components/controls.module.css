@@ -119,6 +119,17 @@
   font: var(--text-body);
 }
 
+/* A group of checkboxes with a legend. */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
 /* Notices ("Mesaj/Info", "Mesaj/Atenție", "Mesaj/Eroare") */
 .notice,
 .warning,

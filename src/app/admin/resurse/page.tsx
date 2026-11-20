@@ -1,18 +1,10 @@
 import type {Metadata} from 'next';
 
-import {EmptyPanel} from '@/components/EmptyPanel';
-import {PageHeader} from '@/components/PageHeader';
+import {ResourceAdmin} from '@/components/admin/ResourceAdmin';
 
 export const metadata: Metadata = {title: 'Resurse · RRM'};
 
+/** Figma "Admin / Resurse". */
 export default function ResursePage() {
-  return (
-    <>
-      <PageHeader
-        title="Resurse"
-        subtitle="Sălile și echipamentele pe care le administrezi."
-      />
-      <EmptyPanel>Conținutul acestei pagini urmează.</EmptyPanel>
-    </>
-  );
+  return <ResourceAdmin />;
 }
