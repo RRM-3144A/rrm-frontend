@@ -167,9 +167,11 @@ function seed(): MockDb {
       const shift = (resource.id % 3) * 30;
       const at = (minutes: number) =>
         `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+      // Two hours ending a little before Tuesday's closing time.
+      const closing = Math.max(...resource.schedule.filter((s) => s.weekday === 1).map((s) => parseTime(s.endTime)));
       reserve({
         userId: 15, resourceId: resource.id, status: 'APPROVED', purpose: 'Lucrări de laborator',
-        startAt: weekday(week, 1, at(16 * 60 + shift)), endAt: weekday(week, 1, at(18 * 60 + shift)),
+        startAt: weekday(week, 1, at(closing - shift - 120)), endAt: weekday(week, 1, at(closing - shift)),
       });
       reserve({
         userId: 15, resourceId: resource.id, status: 'APPROVED', purpose: 'Măsurători',
@@ -236,11 +238,11 @@ function seed(): MockDb {
 
   const maintenance: MaintenanceWindow[] = [
     {
-      id: nextId++, resourceId: 1, startAt: workday(2, '15:00'), endAt: workday(2, '17:00'),
+      id: nextId++, resourceId: 1, startAt: workday(2, '14:30'), endAt: workday(2, '16:00'),
       reason: 'Revizia videoproiectorului.', createdBy: 1, cancelledAt: null,
     },
     {
-      id: nextId++, resourceId: 7, startAt: weekday(1, 0, '08:00'), endAt: weekday(1, 0, '12:00'),
+      id: nextId++, resourceId: 7, startAt: weekday(1, 2, '13:00'), endAt: weekday(1, 2, '17:00'),
       reason: 'Calibrarea brațului robotic.', createdBy: 1, cancelledAt: null,
     },
   ];
