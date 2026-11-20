@@ -1,18 +1,10 @@
 import type {Metadata} from 'next';
 
-import {EmptyPanel} from '@/components/EmptyPanel';
-import {PageHeader} from '@/components/PageHeader';
+import {ScheduleEditor} from '@/components/admin/ScheduleEditor';
 
 export const metadata: Metadata = {title: 'Program de funcționare · RRM'};
 
+/** Figma "Admin / Program de funcționare". */
 export default function ProgramPage() {
-  return (
-    <>
-      <PageHeader
-        title="Program de funcționare"
-        subtitle="Intervalele în care resursa poate fi rezervată, pe zilele săptămânii."
-      />
-      <EmptyPanel>Conținutul acestei pagini urmează.</EmptyPanel>
-    </>
-  );
+  return <ScheduleEditor />;
 }

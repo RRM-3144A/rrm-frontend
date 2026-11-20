@@ -9,7 +9,7 @@ import {Dialog} from '@/components/Dialog';
 import {Icon} from '@/components/icons/Icon';
 import list from '@/components/list.module.css';
 import {PageHeader} from '@/components/PageHeader';
-import {addMinutes, formatLongDate, formatMonth, formatTime, slotMinutes} from '@/lib/dates';
+import {addMinutes, formatLongDate, formatMonth, formatTime, halfHourTimes, slotMinutes} from '@/lib/dates';
 import {errorMessage} from '@/lib/errors';
 import {
   addMaintenance,
@@ -21,11 +21,6 @@ import {useManagedResources} from '@/lib/resources';
 import type {MaintenanceWindow, Resource} from '@/lib/types';
 
 import styles from './MaintenancePlanner.module.css';
-
-/** "00:00", "00:30", … "23:30" */
-const times = Array.from({length: 48}, (_, i) =>
-  `${String(Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`,
-);
 
 /** "2026-11-20" for <input type="date">, in local time. */
 function toDateInput(date: Date): string {
@@ -287,7 +282,7 @@ function MaintenanceDialog({resource, initial, onClose, onAdded}: MaintenanceDia
         <label className={controls.field}>
           <span className={controls.label}>Început – ora</span>
           <select className={controls.select} value={startTime} onChange={(event) => setStartTime(event.target.value)}>
-            {times.map((time) => (
+            {halfHourTimes.map((time) => (
               <option key={time}>{time}</option>
             ))}
           </select>
@@ -306,7 +301,7 @@ function MaintenanceDialog({resource, initial, onClose, onAdded}: MaintenanceDia
         <label className={controls.field}>
           <span className={controls.label}>Sfârșit – ora</span>
           <select className={controls.select} value={endTime} onChange={(event) => setEndTime(event.target.value)}>
-            {times.map((time) => (
+            {halfHourTimes.map((time) => (
               <option key={time}>{time}</option>
             ))}
           </select>
