@@ -3,7 +3,7 @@
 import {useMemo, useState} from 'react';
 
 import {Icon} from '@/components/icons/Icon';
-import {getAvailability} from '@/lib/availability';
+import {useAvailability} from '@/lib/availability';
 import {
   addDays,
   atMinutes,
@@ -13,6 +13,7 @@ import {
   slotMinutes,
   startOfWeek,
 } from '@/lib/dates';
+import {useResource} from '@/lib/resources';
 import type {AvailabilitySlot, Resource} from '@/lib/types';
 
 import styles from './ResourceCalendar.module.css';
@@ -79,22 +80,25 @@ function gridRange(resource: Resource): [number, number] {
 
 interface ResourceCalendarProps {
   resource: Resource;
-  /** Called with the chosen interval; the reservation dialog comes in E1-25. */
+  /** Called with the chosen interval (opens the reservation dialog). */
   onContinue?: (start: Date, end: Date) => void;
 }
 
 /** Weekly calendar with 30-minute slots (Figma "Utilizator / 05 · Calendar resursă"). */
-export function ResourceCalendar({resource, onContinue}: ResourceCalendarProps) {
+export function ResourceCalendar({resource: initialResource, onContinue}: ResourceCalendarProps) {
+  // Opening hours, status and bookings can change while the page is open.
+  const resource = useResource(initialResource);
   const [now] = useState(() => new Date());
   const [weekStart, setWeekStart] = useState(() => startOfWeek(now));
-  const [selection, setSelection] = useState<Selection | null>(null);
+  const [pickedSelection, setSelection] = useState<Selection | null>(null);
 
   const days = useMemo(() => [0, 1, 2, 3, 4, 5, 6].map((i) => addDays(weekStart, i)), [weekStart]);
   const [gridStart, gridEnd] = gridRange(resource);
   const rowCount = (gridEnd - gridStart) / slotMinutes;
 
+  const slots = useAvailability(resource.id, days[0], days[6]);
+
   const cells: Cell[][] = useMemo(() => {
-    const slots = getAvailability(resource, days[0], days[6]);
     const byStart = new Map(slots.map((slot) => [new Date(slot.startAt).getTime(), slot]));
     return days.map((day) =>
       Array.from({length: rowCount}, (_, row) => {
@@ -107,7 +111,16 @@ export function ResourceCalendar({resource, onContinue}: ResourceCalendarProps) 
         return {start, end, state, selectable};
       }),
     );
-  }, [resource, days, rowCount, gridStart, now]);
+  }, [slots, resource.maxConcurrentTeams, days, rowCount, gridStart, now]);
+
+  // A selection that is no longer free (e.g. right after sending the request) is dropped.
+  const selection =
+    pickedSelection &&
+    cells[pickedSelection.day]
+      .slice(pickedSelection.first, pickedSelection.last + 1)
+      .every((cell) => cell.selectable)
+      ? pickedSelection
+      : null;
 
   const maxSlots = resource.maxDurationMin ? resource.maxDurationMin / slotMinutes : Infinity;
 

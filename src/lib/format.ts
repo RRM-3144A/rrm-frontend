@@ -1,4 +1,4 @@
-import type {Resource, ScheduleInterval} from '@/lib/types';
+import type {ReservationStatus, Resource, ScheduleInterval} from '@/lib/types';
 
 const weekdayNames = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
 
@@ -58,4 +58,21 @@ export function formatSchedule(schedule: ScheduleInterval[]): string {
 
 export function adminNames(resource: Resource): string {
   return resource.admins.map((a) => `${a.firstName} ${a.lastName}`).join(', ') || '—';
+}
+
+/** Labels and colour tone of each reservation status (Figma "RRM/Stare"). */
+export const reservationStatusInfo: Record<
+  ReservationStatus,
+  {label: string; tone: 'pending' | 'training' | 'approved' | 'rejected' | 'muted'}
+> = {
+  PENDING: {label: 'În așteptare', tone: 'pending'},
+  AWAITING_TRAINING: {label: 'Necesită instruire', tone: 'training'},
+  APPROVED: {label: 'Aprobată', tone: 'approved'},
+  REJECTED: {label: 'Respinsă', tone: 'rejected'},
+  CANCELLED: {label: 'Anulată', tone: 'muted'},
+  COMPLETED: {label: 'Finalizată', tone: 'muted'},
+};
+
+export function formatSlots(count: number): string {
+  return count === 1 ? '1 slot' : `${count} sloturi`;
 }
