@@ -80,3 +80,9 @@ export function formatNumericDate(date: Date): string {
 export function formatInterval(startAt: string, endAt: string): string {
   return `${formatTime(new Date(startAt))} – ${formatTime(new Date(endAt))}`;
 }
+
+/** "00:00", "00:30", … "23:30": the times a slot can start or end at. */
+export const halfHourTimes = Array.from(
+  {length: (24 * 60) / slotMinutes},
+  (_, i) => `${String(Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`,
+);

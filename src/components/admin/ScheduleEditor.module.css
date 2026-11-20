@@ -1,0 +1,116 @@
+/* Figma "Admin / Program de funcționare". */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 22px;
+  border: 1px solid var(--color-white);
+  border-radius: var(--radius-panel);
+  background: var(--glass-background);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(11px);
+}
+
+.days {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.day {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 12px 0;
+}
+
+.day + .day {
+  border-top: 1px solid rgba(14, 58, 68, 0.18);
+}
+
+.dayName {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 130px;
+  padding-top: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.dayName input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-petrol);
+}
+
+.intervals {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+}
+
+.closed {
+  padding-top: 8px;
+  font: var(--text-secondary);
+  color: var(--color-ink-soft);
+}
+
+.interval {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-ink-soft);
+}
+
+.time {
+  width: 104px;
+}
+
+.remove,
+.add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font: var(--text-secondary);
+  color: var(--color-ink-soft);
+  cursor: pointer;
+}
+
+.remove:hover {
+  background: #f6e6e8;
+  color: var(--color-danger);
+}
+
+.add {
+  padding: 6px 10px;
+  border: 1px dashed var(--color-ink-soft);
+}
+
+.add:hover {
+  border-color: var(--color-petrol);
+  color: var(--color-petrol);
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.link {
+  font-weight: 600;
+  color: var(--color-moss);
+}
