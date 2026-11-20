@@ -14,7 +14,8 @@ const categories = {
 } satisfies Record<string, Category>;
 
 const admins = {
-  maria: {id: 1, firstName: 'Maria', lastName: 'Ionescu', email: 'maria.ionescu@student.usv.ro'},
+  // Id 1 is the demo administrator account (src/lib/mock/accounts.ts).
+  elena: {id: 1, firstName: 'Elena', lastName: 'Munteanu', email: 'elena.munteanu@student.usv.ro'},
   andrei: {id: 2, firstName: 'Andrei', lastName: 'Popescu', email: 'andrei.popescu@student.usv.ro'},
 } satisfies Record<string, AdminSummary>;
 
@@ -34,7 +35,7 @@ function resource(fields: Partial<Resource> & Pick<Resource, 'id' | 'name' | 'ca
     model: null,
     maxDurationMin: null,
     requiresTraining: false,
-    admins: [admins.maria],
+    admins: [admins.elena],
     schedule: weekdays('08:00', '20:00'),
     ...fields,
   };

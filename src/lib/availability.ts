@@ -1,7 +1,18 @@
-import {mockAvailability} from '@/lib/mock/availability';
-import type {AvailabilitySlot, Resource} from '@/lib/types';
+import {useMemo} from 'react';
 
-/** Slots of a resource between two days (inclusive), like GET /resources/{id}/availability. */
-export function getAvailability(resource: Resource, from: Date, to: Date): AvailabilitySlot[] {
-  return mockAvailability(resource, from, to);
+import {mockAvailability} from '@/lib/mock/availability';
+import {useMockDb} from '@/lib/mock/db';
+import type {AvailabilitySlot} from '@/lib/types';
+
+/**
+ * Slots of a resource between two days (inclusive), like
+ * GET /resources/{id}/availability; empty until the data is loaded.
+ * `from` and `to` should be stable (memoised) dates.
+ */
+export function useAvailability(resourceId: number, from: Date, to: Date): AvailabilitySlot[] {
+  const db = useMockDb();
+  return useMemo(
+    () => (db ? mockAvailability(db, resourceId, from, to) : []),
+    [db, resourceId, from, to],
+  );
 }

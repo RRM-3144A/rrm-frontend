@@ -73,3 +73,75 @@ export interface AvailabilitySlot {
   status: SlotStatus;
   freePlaces: number;
 }
+
+/** Backend ReservationStatus. */
+export type ReservationStatus =
+  | 'PENDING'
+  | 'AWAITING_TRAINING'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'CANCELLED'
+  | 'COMPLETED';
+
+export interface Team {
+  id: number;
+  name: string;
+}
+
+/** A user as returned in reservation lists (backend UserOut with its team). */
+export interface UserSummary extends SessionUser {
+  team: Team | null;
+}
+
+/** Backend ReservationOut; times as ISO strings. */
+export interface Reservation {
+  id: number;
+  userId: number;
+  resourceId: number;
+  teamId: number | null;
+  startAt: string;
+  endAt: string;
+  purpose: string | null;
+  status: ReservationStatus;
+  rejectionReason: string | null;
+  /** Set when a maintenance window now overlaps an approved reservation (E1-30). */
+  needsReview: boolean;
+  decidedBy: number | null;
+  decidedAt: string | null;
+  createdAt: string;
+}
+
+/** Body of POST /reservations. */
+export interface ReservationCreate {
+  resourceId: number;
+  startAt: string;
+  endAt: string;
+  purpose: string | null;
+  teamId: number | null;
+}
+
+/** A request in the admin's list (backend PendingReservationOut). */
+export interface PendingReservation extends Reservation {
+  user: UserSummary;
+  resource: Resource;
+  team: Team | null;
+  isFirstReservation: boolean;
+  hasCompletedTraining: boolean;
+}
+
+/** Backend MaintenanceOut. */
+export interface MaintenanceWindow {
+  id: number;
+  resourceId: number;
+  startAt: string;
+  endAt: string;
+  reason: string;
+  createdBy: number | null;
+  cancelledAt: string | null;
+}
+
+/** Backend CategoryOut. */
+export interface CategoryDetails extends Category {
+  description: string | null;
+  resourceCount: number;
+}

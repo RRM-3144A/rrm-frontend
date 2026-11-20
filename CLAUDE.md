@@ -90,11 +90,26 @@ public/                 google.svg, lumina.svg (background lines) – exported f
 ## Data: mocks now, API later
 
 The lab brief says the MVP frontend **does not need to be integrated with the backend yet**.
-So pages read data through `src/lib/catalog.ts`, `src/lib/availability.ts` and
-`src/lib/auth.ts`, which currently use `src/lib/mock/*`. The mocks have the **same shape
-as the backend responses** (`src/lib/types.ts`), so integration (Jira **E1-41**, API client)
-only changes those `lib` files, not the components. Keep this pattern for new pages:
-add a function in `src/lib/<area>.ts` backed by a mock in `src/lib/mock/`.
+So pages read and change data through `src/lib/<area>.ts` (`catalog`, `availability`,
+`resources`, `reservations`, `auth`, ...), which currently use `src/lib/mock/*`. The mocks
+have the **same shape as the backend responses** (`src/lib/types.ts`), so integration
+(Jira **E1-41**, API client) only changes those `lib` files, not the components.
+
+- `src/lib/mock/db.ts` is an **in-browser mock database** (localStorage key `rrm.mockDb`,
+  seeded on first use with dates relative to today). It makes the demo flows work end to
+  end: a student's request shows up in the admin's "Cereri primite", the decision shows up
+  in "Rezervările mele", maintenance and opening hours show up in the calendar.
+  Open student and admin in two tabs (or sign out and in) – they share the data.
+  To start over: `localStorage.removeItem('rrm.mockDb')` in the browser console, or
+  bump `dbVersion` when the seed changes.
+- Client components read it through hooks in `src/lib/<area>.ts` (`useMyReservations()`,
+  `useAvailability()`, ...); changes go through async functions (`createReservation()`,
+  `cancelReservation()`, ...) that apply the **backend's rules and HTTP statuses** and
+  throw `ApiError` (`src/lib/errors.ts`, message in Romanian, shown with `errorMessage()`).
+- Server pages (catalog, resource page) still use the static `src/lib/catalog.ts`.
+- Shared UI: `components/Dialog` (modal popups), `components/controls.module.css`
+  (buttons, fields, notices, details), `components/list.module.css` (search bar, filter
+  chips, glass list with dated rows, status colours, tags).
 
 Backend endpoints the frontend will use (see `rrm-backend`, Swagger at `/docs`):
 `POST /auth/google` (ID token → JWT + user), `GET /auth/me`, `GET /resources`,

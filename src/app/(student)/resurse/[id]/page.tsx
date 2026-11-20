@@ -2,9 +2,9 @@ import type {Metadata} from 'next';
 import Link from 'next/link';
 import {notFound} from 'next/navigation';
 
-import {ResourceCalendar} from '@/components/calendar/ResourceCalendar';
 import {Icon} from '@/components/icons/Icon';
 import {PageHeader} from '@/components/PageHeader';
+import {ResourceBooking} from '@/components/reservations/ResourceBooking';
 import {getCatalogEntry} from '@/lib/catalog';
 import {resourceSubtitle} from '@/lib/format';
 
@@ -43,7 +43,7 @@ export default async function ResourcePage({params}: ResourcePageProps) {
         subtitle={resourceSubtitle(resource)}
         aside={<span className={`${styles.status} ${status.className}`}>{status.label}</span>}
       />
-      <ResourceCalendar resource={resource} />
+      <ResourceBooking resource={resource} />
     </>
   );
 }

@@ -51,3 +51,32 @@ export function formatTime(date: Date): string {
 export function weekdayIndex(date: Date): number {
   return (date.getDay() + 6) % 7;
 }
+
+const longDate = new Intl.DateTimeFormat('ro-RO', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+const monthName = new Intl.DateTimeFormat('ro-RO', {month: 'long'});
+
+/** "Miercuri, 11 noiembrie 2026" */
+export function formatLongDate(date: Date): string {
+  const text = longDate.format(date);
+  return text.charAt(0).toLocaleUpperCase('ro') + text.slice(1);
+}
+
+/** "noiembrie" */
+export function formatMonth(date: Date): string {
+  return monthName.format(date);
+}
+
+/** "20.11.2026", the format users type in the search boxes. */
+export function formatNumericDate(date: Date): string {
+  return `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`;
+}
+
+/** "08:00 – 10:00" for two ISO times. */
+export function formatInterval(startAt: string, endAt: string): string {
+  return `${formatTime(new Date(startAt))} – ${formatTime(new Date(endAt))}`;
+}
