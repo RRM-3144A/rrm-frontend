@@ -2,6 +2,7 @@
 
 import {useEffect, useState} from 'react';
 
+import {apiClient} from '@/lib/api';
 import {apiUrl} from '@/lib/config';
 
 import styles from './BackendStatus.module.css';
@@ -14,14 +15,15 @@ const labels: Record<Status, string> = {
   down: 'Backend indisponibil',
 };
 
-/** Calls GET /health on the FastAPI backend and shows whether it answers. */
+/** Calls GET /health through the shared API client and shows whether the backend answers. */
 export function BackendStatus() {
   const [status, setStatus] = useState<Status>('checking');
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch(`${apiUrl}/health`, {signal: controller.signal})
-      .then((response) => setStatus(response.ok ? 'ok' : 'down'))
+    apiClient
+      .get<{status: string}>('/health', {signal: controller.signal, skipAuthRedirect: true})
+      .then(() => setStatus('ok'))
       .catch((error: unknown) => {
         if (!(error instanceof DOMException && error.name === 'AbortError')) {
           setStatus('down');
