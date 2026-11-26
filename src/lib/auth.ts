@@ -1,5 +1,7 @@
+import {apiClient} from '@/lib/api';
+import {ApiError} from '@/lib/errors';
 import type {DemoAccount} from '@/lib/mock/accounts';
-import {clearSession, saveSession} from '@/lib/session';
+import {clearSession, readSession, saveSession} from '@/lib/session';
 import type {Role, SessionUser} from '@/lib/types';
 
 /** Same rule as the backend (ALLOWED_EMAIL_DOMAIN). */
@@ -15,6 +17,29 @@ export class AuthError extends Error {
   }
 }
 
+interface BackendUser {
+  id: number;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: Role;
+}
+
+interface BackendTokenResponse {
+  access_token: string;
+  user: BackendUser;
+}
+
+function mapBackendUser(raw: BackendUser): SessionUser {
+  return {
+    id: raw.id,
+    firstName: raw.first_name,
+    lastName: raw.last_name,
+    email: raw.email,
+    role: raw.role,
+  };
+}
+
 export function isInstitutionalEmail(email: string): boolean {
   return email.toLowerCase().endsWith(`@${allowedEmailDomain}`);
 }
@@ -24,10 +49,40 @@ export function homePathFor(role: Role): string {
   return role === 'ADMIN' ? '/admin/cereri' : '/sali';
 }
 
+/** Authenticates against FastAPI POST /auth/google with a Google ID token. */
+export async function signInWithGoogleToken(idToken: string): Promise<SessionUser> {
+  try {
+    const data = await apiClient.post<BackendTokenResponse>(
+      '/auth/google',
+      {id_token: idToken},
+      {skipAuthRedirect: true},
+    );
+    const user = mapBackendUser(data.user);
+    saveSession({token: data.access_token, user});
+    return user;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      throw new AuthError('domain');
+    }
+    throw new AuthError('failed');
+  }
+}
+
+/** Validates the active token via GET /auth/me and refreshes the stored user profile. */
+export async function fetchCurrentUser(): Promise<SessionUser | null> {
+  const session = readSession();
+  if (!session) {
+    return null;
+  }
+  const raw = await apiClient.get<BackendUser>('/auth/me');
+  const user = mapBackendUser(raw);
+  saveSession({token: session.token, user});
+  return user;
+}
+
 /**
- * Demo sign-in: applies the backend's domain rule to the chosen account.
- * With the API client (E1-41) this becomes POST /auth/google with the Google ID token,
- * and the backend's 401 for other domains maps to AuthError('domain').
+ * Demo sign-in fallback when Google OAuth widget credentials are not configured:
+ * applies the backend's domain rule to the chosen account.
  */
 export async function signInWithGoogle(account: DemoAccount): Promise<SessionUser> {
   if (!isInstitutionalEmail(account.email) || account.role === null) {
