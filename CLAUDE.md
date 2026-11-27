@@ -80,51 +80,44 @@ src/lib/
   navigation.ts         sidebar menus per role
   session.ts            session in localStorage + useSession() hook
   auth.ts               sign-in (demo mode), signOut, homePathFor(role), domain rule
-  catalog.ts, availability.ts   data access used by the pages (currently backed by mocks)
-  mock/                 mock data: catalog, availability, demo accounts
+  <area>.ts             data access used by the pages (catalog, reservations, requests, ...)
+  api.ts, backend.ts, store.ts   HTTP client, backend mappers, query cache
+  mock/accounts.ts      the demo accounts offered by the sign-in chooser
   format.ts, dates.ts   formatting helpers (Romanian labels, local time)
   config.ts             apiUrl from NEXT_PUBLIC_API_URL
 public/                 google.svg, lumina.svg (background lines) – exported from Figma
 ```
 
-## Data: mocks now, API later
+## Data: the FastAPI backend (E1-49)
 
-The lab brief says the MVP frontend **does not need to be integrated with the backend yet**.
-So pages read and change data through `src/lib/<area>.ts` (`catalog`, `availability`,
-`resources`, `reservations`, `auth`, ...), which currently use `src/lib/mock/*`. The mocks
-have the **same shape as the backend responses** (`src/lib/types.ts`), so integration
-(Jira **E1-41**, API client) only changes those `lib` files, not the components.
+Pages read and change data through `src/lib/<area>.ts` (`catalog`, `availability`,
+`resources`, `reservations`, `requests`, `maintenance`, `schedule`, `administration`,
+`auth`), which call the backend through `src/lib/api.ts` (JWT from the session,
+backend errors translated to Romanian `ApiError`s). The mock database is gone.
 
-- `src/lib/mock/db.ts` is an **in-browser mock database** (localStorage key `rrm.mockDb`,
-  seeded on first use with dates relative to today). It makes the demo flows work end to
-  end: a student's request shows up in the admin's "Cereri primite", the decision shows up
-  in "Rezervările mele", maintenance and opening hours show up in the calendar.
-  Open student and admin in two tabs (or sign out and in) – they share the data.
-  To start over: `localStorage.removeItem('rrm.mockDb')` in the browser console, or
-  bump `dbVersion` when the seed changes.
-- Client components read it through hooks in `src/lib/<area>.ts` (`useMyReservations()`,
-  `useAvailability()`, ...); changes go through async functions (`createReservation()`,
-  `cancelReservation()`, ...) that apply the **backend's rules and HTTP statuses** and
-  throw `ApiError` (`src/lib/errors.ts`, message in Romanian, shown with `errorMessage()`).
-- The catalog and the resource page read the mock database too (`useCatalog()`,
-  `useCatalogEntry()` in `src/lib/catalog.ts`), so resources added or deactivated in
-  "Resurse" show up for students right away. `src/lib/mock/catalog.ts` is only the seed.
+- `src/lib/backend.ts`: backend (snake_case) shapes, mappers to `src/lib/types.ts`, shared reads.
+- `src/lib/store.ts`: a small query cache. Hooks use `useQuery(key, fetcher)` (`undefined`
+  while loading); changes go through `mutate()`, which refetches what is on screen.
+  Data also refreshes every 8 s and on tab focus, so a student tab and an admin tab
+  see each other's changes during the demo.
 - Shared UI: `components/Dialog` (modal popups), `components/controls.module.css`
   (buttons, fields, notices, details), `components/list.module.css` (search bar, filter
   chips, glass list with dated rows, status colours, tags).
 
-Backend endpoints the frontend will use (see `rrm-backend`, Swagger at `/docs`):
+Backend endpoints the frontend uses (see `rrm-backend`, Swagger at `/docs`):
 `POST /auth/google` (ID token → JWT + user), `GET /auth/me`, `GET /resources`,
 `GET /categories`, `GET/PUT /resources/{id}/schedule`,
 `GET /resources/{id}/availability?start_date&end_date` (30-min slots: FREE / PENDING /
 APPROVED / MAINTENANCE + free_places), `GET/POST /resources/{id}/maintenance`,
 `DELETE /resources/{id}/maintenance/{mid}`, `POST /reservations`,
 `GET /reservations/pending` (admin), `POST /reservations/{id}/approve|reject|awaiting-training`,
-`POST /reservations/{id}/cancel`, complete-training (E1-45, PR #21 in rrm-backend).
+`POST /reservations/{id}/cancel`, complete-training, `GET /reservations/me`,
+`GET /reservations/needs-review`, `GET /users`, `GET /teams`, `POST /auth/demo`.
 Errors: 401 not signed in, 403 wrong role, 404, 409 conflict (slot taken / overlap), 422 invalid input.
 
-Sign-in: until E1-41, "Continuă cu Google" opens a **demo account chooser** (student,
-admin, personal Gmail → domain error). The session (`{token, user}`) is kept in
+Sign-in: "Continuă cu Google" opens a **demo account chooser** (student Maria Lungu,
+admin Elena Munteanu, personal Gmail → domain error) that calls the backend's
+`POST /auth/demo` (needs `DEMO_LOGIN=true` in `rrm-backend/.env`) and gets a real JWT. The session (`{token, user}`) is kept in
 `localStorage` under `rrm.session`. `AppShell` sends signed-out visitors to `/conectare`
 and shows "Acces restricționat" to non-admins on `/admin/*`.
 
@@ -159,23 +152,19 @@ and shows "Acces restricționat" to non-admins on `/admin/*`.
 
 ## Status (keep this up to date; check Jira for the truth)
 
-Done (merged): E1-37 (Next.js setup), E1-40 (layout + navigation), E1-17 (catalog),
-E1-14 (sign-in page), E1-42 (role protection), E1-21 (resource calendar).
+Done (merged): E1-37 (Next.js setup), E1-40, E1-17, E1-14, E1-42, E1-21, E1-25, E1-28,
+E1-31, E1-43, E1-18, E1-41 (API client).
 
-MVP frontend in review (PRs by Gabriel, merge in this order):
-1. **E1-25** (#8) – "Adaugă rezervare" dialog, "Rezervările mele", mock database + shared UI.
-2. **E1-28 + E1-45 UI** (#9, on #8) – admin "Cereri primite" (approve / reject / training / training done).
-3. **E1-31** (#10, on #8) – admin "Calendar și mentenanță".
-4. **E1-43** (#11, on #10) – admin "Program de funcționare".
-5. **E1-18** (on #8) – admin "Resurse" and "Categorii"; catalog reads the mock database.
+**E1-49** (demo preparation): frontend wired to the real backend (this file's "Data"
+section) + backend PR in rrm-backend (`POST /auth/demo`, `GET /reservations/me`,
+schedules in `ResourceOut`, `AWAITING_TRAINING` in `/reservations/pending`).
 
-Gaps found in the backend for the integration (E1-41): no endpoint for a student's own
-reservations ("Rezervările mele", e.g. `GET /reservations/me`); `GET /reservations/pending`
-returns only `PENDING` (the page also shows `AWAITING_TRAINING`).
+Known gaps: no endpoint for "upcoming reservations of a resource" (the deactivate dialog
+no longer shows the count); the maintenance dialog's "affected reservations" is an
+estimate from availability (exact count is shown after saving).
 
-Later / not MVP: **E1-41** API client (integration stage), **E1-46** waitlist UI (nice to have),
-**E1-50** "Utilizare pe echipe", **E1-47** end-to-end tests, **E1-49** demo preparation,
-"Profil" pages, "Reprogramează" for reservations under review.
+Later / not MVP: **E1-46** waitlist UI, **E1-50** "Utilizare pe echipe" page,
+**E1-47** end-to-end tests, "Profil" pages, "Reprogramează".
 
 **E1-37 Docker part** (postponed to the end of the project): add a `Dockerfile`
 (Next.js `output: 'standalone'`, copy `.next/standalone`, `.next/static` and `public/`),
