@@ -106,6 +106,48 @@
   color: var(--color-ink-soft);
 }
 
+/* Test accounts under the Google button (NEXT_PUBLIC_DEMO_LOGIN). */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: var(--text-small);
+  color: var(--color-ink-soft);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.testAccounts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.testAccount {
+  height: 40px;
+  border: 1px solid var(--color-petrol);
+  border-radius: 11px;
+  background: var(--color-white);
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--color-petrol);
+  cursor: pointer;
+}
+
+.testAccount:hover {
+  background: rgba(14, 58, 68, 0.06);
+}
+
+.testAccount:disabled {
+  cursor: progress;
+}
+
 /* "Eroare autentificare" */
 .error {
   display: flex;

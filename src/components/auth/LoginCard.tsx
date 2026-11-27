@@ -8,6 +8,7 @@ import {Icon} from '@/components/icons/Icon';
 import {
   AuthError,
   allowedEmailDomain,
+  demoLoginEnabled,
   googleClientId,
   homePathFor,
   signInWithGoogle,
@@ -175,6 +176,27 @@ export function LoginCard() {
           <>
             <GoogleButton onCredential={signInWithToken} onUnavailable={onGoogleUnavailable} />
             {busy && <p className={styles.chooserNote}>Se verifică contul…</p>}
+            {demoLoginEnabled && (
+              <div className={styles.chooser}>
+                <p className={styles.divider}>sau intră cu un cont de test</p>
+                <div className={styles.testAccounts}>
+                  {demoAccounts
+                    .filter((account) => account.role !== null)
+                    .map((account) => (
+                      <button
+                        key={account.email}
+                        type="button"
+                        className={styles.testAccount}
+                        onClick={() => chooseAccount(account)}
+                        disabled={busy}
+                        title={account.email}
+                      >
+                        {account.label} test
+                      </button>
+                    ))}
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <>

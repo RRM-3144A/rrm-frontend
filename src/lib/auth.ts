@@ -12,6 +12,12 @@ export const allowedEmailDomain =
 /** OAuth Client ID of the Google Cloud project (NEXT_PUBLIC_GOOGLE_CLIENT_ID); empty = demo mode. */
 export const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
 
+/**
+ * Shows "Student test" / "Administrator test" under the Google button
+ * (NEXT_PUBLIC_DEMO_LOGIN=true; the backend needs DEMO_LOGIN=true too).
+ */
+export const demoLoginEnabled = process.env.NEXT_PUBLIC_DEMO_LOGIN === 'true';
+
 export type AuthErrorReason = 'domain' | 'failed';
 
 export class AuthError extends Error {
