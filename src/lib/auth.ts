@@ -9,6 +9,9 @@ import type {Role, SessionUser} from '@/lib/types';
 export const allowedEmailDomain =
   process.env.NEXT_PUBLIC_ALLOWED_EMAIL_DOMAIN ?? 'student.usv.ro';
 
+/** OAuth Client ID of the Google Cloud project (NEXT_PUBLIC_GOOGLE_CLIENT_ID); empty = demo mode. */
+export const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
+
 export type AuthErrorReason = 'domain' | 'failed';
 
 export class AuthError extends Error {
@@ -63,7 +66,8 @@ export async function signInWithGoogleToken(idToken: string): Promise<SessionUse
     saveSession({token: data.access_token, user});
     return user;
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) {
+    // 401 "Only @student.usv.ro accounts can sign in" (translated in api.ts).
+    if (error instanceof ApiError && error.status === 401 && error.message.includes(allowedEmailDomain)) {
       throw new AuthError('domain');
     }
     throw new AuthError('failed');
