@@ -48,6 +48,14 @@
   cursor: progress;
 }
 
+/* Where Google Identity Services renders its own button. */
+.googleSlot {
+  display: flex;
+  justify-content: center;
+  width: 300px;
+  min-height: 44px;
+}
+
 /* Demo account chooser (stands in for Google's own chooser). */
 .chooser {
   display: flex;
