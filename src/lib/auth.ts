@@ -2,6 +2,7 @@ import {apiClient} from '@/lib/api';
 import {ApiError} from '@/lib/errors';
 import type {DemoAccount} from '@/lib/mock/accounts';
 import {clearSession, readSession, saveSession} from '@/lib/session';
+import {resetCache} from '@/lib/store';
 import type {Role, SessionUser} from '@/lib/types';
 
 /** Same rule as the backend (ALLOWED_EMAIL_DOMAIN). */
@@ -58,6 +59,7 @@ export async function signInWithGoogleToken(idToken: string): Promise<SessionUse
       {skipAuthRedirect: true},
     );
     const user = mapBackendUser(data.user);
+    resetCache();
     saveSession({token: data.access_token, user});
     return user;
   } catch (error) {
@@ -81,24 +83,33 @@ export async function fetchCurrentUser(): Promise<SessionUser | null> {
 }
 
 /**
- * Demo sign-in fallback when Google OAuth widget credentials are not configured:
- * applies the backend's domain rule to the chosen account.
+ * Demo sign-in (no Google OAuth client configured): POST /auth/demo with the chosen
+ * seeded account; the backend applies the same domain rule and returns a real JWT.
+ * Requires DEMO_LOGIN=true in the backend's .env.
  */
 export async function signInWithGoogle(account: DemoAccount): Promise<SessionUser> {
   if (!isInstitutionalEmail(account.email) || account.role === null) {
     throw new AuthError('domain');
   }
-  const user: SessionUser = {
-    id: account.id,
-    firstName: account.firstName,
-    lastName: account.lastName,
-    email: account.email,
-    role: account.role,
-  };
-  saveSession({token: 'demo', user});
-  return user;
+  try {
+    const data = await apiClient.post<BackendTokenResponse>(
+      '/auth/demo',
+      {email: account.email},
+      {skipAuthRedirect: true},
+    );
+    const user = mapBackendUser(data.user);
+    resetCache();
+    saveSession({token: data.access_token, user});
+    return user;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      throw new AuthError('domain');
+    }
+    throw new AuthError('failed');
+  }
 }
 
 export function signOut(): void {
+  resetCache();
   clearSession();
 }

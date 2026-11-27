@@ -1,15 +1,16 @@
 // Maintenance windows of a resource: GET / POST /resources/{id}/maintenance and
-// DELETE /resources/{id}/maintenance/{mid}. Backed by the mock database; the rules
-// follow rrm-backend (app/services/maintenance.py): only the resource's admins,
-// no overlapping windows (409), and approved reservations that overlap a new window
-// are flagged for review (they appear as "Reanalizare" in "Cereri primite").
+// DELETE /resources/{id}/maintenance/{mid}. Approved reservations that overlap a new
+// window are flagged for review by the backend (they appear as "Reanalizare" in
+// "Cereri primite").
 
 import {useMemo} from 'react';
 
-import {ApiError} from '@/lib/errors';
-import {newId, overlaps, updateDb, useMockDb} from '@/lib/mock/db';
-import type {MockDb} from '@/lib/mock/db';
-import {readSession} from '@/lib/session';
+import {apiClient} from '@/lib/api';
+import {mapMaintenance} from '@/lib/backend';
+import type {RawMaintenance, RawReservation} from '@/lib/backend';
+import {useAvailability} from '@/lib/availability';
+import {addDays} from '@/lib/dates';
+import {mutate, useQuery} from '@/lib/store';
 import type {MaintenanceWindow} from '@/lib/types';
 
 export interface MaintenanceCreate {
@@ -20,126 +21,85 @@ export interface MaintenanceCreate {
 
 /** Active windows of a resource that have not ended yet, by start; `undefined` while loading. */
 export function useMaintenanceWindows(resourceId: number): MaintenanceWindow[] | undefined {
-  const db = useMockDb();
+  const windows = useQuery(`maintenance:${resourceId}`, async () =>
+    (await apiClient.get<RawMaintenance[]>(`/resources/${resourceId}/maintenance`)).map(
+      mapMaintenance,
+    ),
+  );
   return useMemo(() => {
-    if (!db) {
+    if (!windows) {
       return undefined;
     }
     const now = new Date();
-    return db.maintenance
-      .filter((m) => m.resourceId === resourceId && !m.cancelledAt && new Date(m.endAt) > now)
-      .sort((a, b) => a.startAt.localeCompare(b.startAt));
-  }, [db, resourceId]);
+    return windows
+      .filter((m) => !m.cancelledAt && new Date(m.endAt) > now)
+      .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
+  }, [windows]);
 }
+
+const far = new Date(0);
 
 /**
- * How many approved reservations of a resource overlap an interval: they get flagged
- * for review if a maintenance window is added there.
+ * Estimate of how many approved reservations of a resource overlap an interval (they
+ * get flagged for review if a maintenance window is added there), from the runs of
+ * fully booked slots in GET /resources/{id}/availability.
  */
 export function useAffectedReservations(resourceId: number, startAt: string, endAt: string): number {
-  const db = useMockDb();
-  return useMemo(
-    () =>
-      db?.reservations.filter(
-        (r) =>
-          r.resourceId === resourceId &&
-          r.status === 'APPROVED' &&
-          overlaps(r.startAt, r.endAt, startAt, endAt),
-      ).length ?? 0,
-    [db, resourceId, startAt, endAt],
-  );
+  const start = useMemo(() => (startAt ? new Date(startAt) : far), [startAt]);
+  const end = useMemo(() => {
+    if (!endAt) {
+      return far;
+    }
+    // The availability endpoint accepts at most 31 days.
+    const limit = addDays(start, 30);
+    const date = new Date(endAt);
+    return date > limit ? limit : date;
+  }, [endAt, start]);
+  const slots = useAvailability(resourceId, start, end);
+  return useMemo(() => {
+    if (!startAt || !endAt) {
+      return 0;
+    }
+    // Consecutive approved slots inside the interval ≈ one reservation each.
+    let runs = 0;
+    let previousApproved = false;
+    for (const slot of slots) {
+      const inside = new Date(slot.startAt) < new Date(endAt) && new Date(startAt) < new Date(slot.endAt);
+      const approved = inside && slot.status === 'APPROVED';
+      if (approved && !previousApproved) {
+        runs += 1;
+      }
+      previousApproved = approved;
+    }
+    return runs;
+  }, [slots, startAt, endAt]);
 }
 
-function asResourceAdmin<T>(resourceId: number, change: (db: MockDb, adminId: number) => T): T {
-  const session = readSession();
-  if (!session) {
-    throw new ApiError(401, 'Sesiunea a expirat. Conectează-te din nou.');
-  }
-  return updateDb((db) => {
-    const resource = db.resources.find((r) => r.id === resourceId);
-    if (!resource) {
-      throw new ApiError(404, 'Resursa nu mai există.');
-    }
-    if (!resource.admins.some((a) => a.id === session.user.id)) {
-      throw new ApiError(403, 'Doar administratorii resursei pot programa mentenanța.');
-    }
-    return change(db, session.user.id);
+async function reviewCount(resourceId: number): Promise<number> {
+  const raw = await apiClient.get<RawReservation[]>('/reservations/needs-review', {
+    query: {resource_id: resourceId},
   });
+  return raw.length;
 }
 
-function formatWhen(iso: string): string {
-  const date = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
-/** POST /resources/{id}/maintenance */
+/** POST /resources/{id}/maintenance; `flagged` = approved reservations now under review. */
 export async function addMaintenance(
   resourceId: number,
   input: MaintenanceCreate,
 ): Promise<{window: MaintenanceWindow; flagged: number}> {
-  const reason = input.reason.trim();
-  if (!reason) {
-    throw new ApiError(422, 'Scrie motivul mentenanței.');
-  }
-  if (new Date(input.endAt) <= new Date(input.startAt)) {
-    throw new ApiError(422, 'Sfârșitul trebuie să fie după început.');
-  }
-  return asResourceAdmin(resourceId, (db, adminId) => {
-    const existing = db.maintenance.find(
-      (m) =>
-        m.resourceId === resourceId &&
-        !m.cancelledAt &&
-        overlaps(input.startAt, input.endAt, m.startAt, m.endAt),
-    );
-    if (existing) {
-      throw new ApiError(
-        409,
-        `Se suprapune cu mentenanța din ${formatWhen(existing.startAt)} – ${formatWhen(existing.endAt)}. Ajustează intervalul.`,
-      );
-    }
-    const period: MaintenanceWindow = {
-      id: newId(db),
-      resourceId,
-      startAt: new Date(input.startAt).toISOString(),
-      endAt: new Date(input.endAt).toISOString(),
-      reason,
-      createdBy: adminId,
-      cancelledAt: null,
-    };
-    db.maintenance.push(period);
-    let flagged = 0;
-    for (const r of db.reservations) {
-      if (
-        r.resourceId === resourceId &&
-        r.status === 'APPROVED' &&
-        overlaps(r.startAt, r.endAt, period.startAt, period.endAt)
-      ) {
-        r.needsReview = true;
-        flagged += 1;
-      }
-    }
-    return {window: period, flagged};
-  });
+  const before = await reviewCount(resourceId).catch(() => 0);
+  const raw = await mutate(() =>
+    apiClient.post<RawMaintenance>(`/resources/${resourceId}/maintenance`, {
+      start_at: new Date(input.startAt).toISOString(),
+      end_at: new Date(input.endAt).toISOString(),
+      reason: input.reason.trim(),
+    }),
+  );
+  const after = await reviewCount(resourceId).catch(() => before);
+  return {window: mapMaintenance(raw), flagged: Math.max(after - before, 0)};
 }
 
-/** DELETE /resources/{id}/maintenance/{mid}: cancels the window and clears resolved review flags. */
+/** DELETE /resources/{id}/maintenance/{mid}: cancels the window. */
 export async function cancelMaintenance(resourceId: number, maintenanceId: number): Promise<void> {
-  asResourceAdmin(resourceId, (db) => {
-    const period = db.maintenance.find((m) => m.id === maintenanceId && m.resourceId === resourceId);
-    if (!period || period.cancelledAt) {
-      throw new ApiError(404, 'Perioada de mentenanță nu mai există.');
-    }
-    period.cancelledAt = new Date().toISOString();
-    const active = db.maintenance.filter((m) => m.resourceId === resourceId && !m.cancelledAt);
-    for (const r of db.reservations) {
-      if (
-        r.resourceId === resourceId &&
-        r.needsReview &&
-        !active.some((m) => overlaps(r.startAt, r.endAt, m.startAt, m.endAt))
-      ) {
-        r.needsReview = false;
-      }
-    }
-  });
+  await mutate(() => apiClient.delete<void>(`/resources/${resourceId}/maintenance/${maintenanceId}`));
 }

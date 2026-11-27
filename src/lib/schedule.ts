@@ -1,12 +1,13 @@
 // Opening hours of a resource: PUT /resources/{id}/schedule (GET is part of the
-// resource). Backed by the mock database; the rules follow rrm-backend
-// (app/services/schedule.py): intervals on :00/:30, end after start, no overlaps on
-// the same day, resource admins only. The calendar uses the new hours right away.
+// resource). The rules follow rrm-backend (app/services/schedule.py): intervals on
+// :00/:30, end after start, no overlaps on the same day, resource admins only.
 
+import {apiClient} from '@/lib/api';
+import {mapSchedule} from '@/lib/backend';
+import type {RawSchedule} from '@/lib/backend';
 import {parseTime, slotMinutes} from '@/lib/dates';
 import {ApiError} from '@/lib/errors';
-import {updateDb} from '@/lib/mock/db';
-import {readSession} from '@/lib/session';
+import {mutate} from '@/lib/store';
 import type {ScheduleInterval} from '@/lib/types';
 
 const weekdayNames = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
@@ -44,21 +45,14 @@ export async function saveSchedule(
   if (problem) {
     throw new ApiError(422, problem);
   }
-  const session = readSession();
-  if (!session) {
-    throw new ApiError(401, 'Sesiunea a expirat. Conectează-te din nou.');
-  }
-  return updateDb((db) => {
-    const resource = db.resources.find((r) => r.id === resourceId);
-    if (!resource) {
-      throw new ApiError(404, 'Resursa nu mai există.');
-    }
-    if (!resource.admins.some((a) => a.id === session.user.id)) {
-      throw new ApiError(403, 'Doar administratorii resursei pot schimba programul.');
-    }
-    resource.schedule = [...intervals].sort(
-      (a, b) => a.weekday - b.weekday || parseTime(a.startTime) - parseTime(b.startTime),
-    );
-    return resource.schedule;
-  });
+  const raw = await mutate(() =>
+    apiClient.put<RawSchedule[]>(`/resources/${resourceId}/schedule`, {
+      intervals: intervals.map((i) => ({
+        weekday: i.weekday,
+        start_time: i.startTime,
+        end_time: i.endTime,
+      })),
+    }),
+  );
+  return raw.map(mapSchedule);
 }
